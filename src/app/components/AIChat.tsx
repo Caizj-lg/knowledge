@@ -17,7 +17,7 @@ const QUICK_TAGS = [
   '做 PPT',
   '查资料（带引用）',
   '画流程图',
-  '自动化工作流',
+  'AI生成视频',
 ];
 
 const EXAMPLE_QUESTIONS = [
@@ -82,9 +82,9 @@ function generateAIResponse(userMessage: string): Message {
 
   if (lowerMessage.includes('自动化') || lowerMessage.includes('工作流')) {
     recommendations.push({
-      name: 'Zapier AI',
-      url: 'https://zapier.com',
-      reason: '适合自动化工作流与应用联动',
+      name: 'Manus',
+      url: 'https://manus.im/app',
+      reason: 'manus是一个自动化工具流程。',
     });
   }
 
@@ -97,9 +97,9 @@ function generateAIResponse(userMessage: string): Message {
         reason: '通用型 AI 助手，适合各类问答与写作需求',
       },
       {
-        name: 'Perplexity',
-        url: 'https://www.perplexity.ai',
-        reason: '适合快速研究与资料查询',
+        name: 'Sora',
+        url: 'https://sora.chatgpt.com/explore',
+        reason: 'AI生成视频的工具',
       }
     );
   }

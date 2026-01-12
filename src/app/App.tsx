@@ -9,31 +9,24 @@ import { SubmitToolModal } from './components/SubmitToolModal';
 const TOOLS: Tool[] = [
   {
     id: '1',
-    name: 'Notion',
-    url: 'https://www.notion.so',
-    description: '文档与知识库协作工具，适合团队沉淀资料与项目管理。',
-    tags: ['知识库', '协作'],
+    name: '大盘云图',
+    url: 'https://dapanyuntu.com/',
+    description: '大盘云图是一个股票大盘的网站，可以查看股票的大盘指数。',
+    tags: ['股票', '大盘', '指数'],
   },
   {
     id: '2',
-    name: 'Canva',
-    url: 'https://www.canva.com',
-    description: '快速制作海报、PPT 与社媒图片，适合非设计人员。',
-    tags: ['设计', '效率'],
+    name: 'codedex.io',
+    url: 'https://www.codedex.io/courses',
+    description: '玩游戏学编程的网站。',
+    tags: ['编程', '游戏', '学习'],
   },
   {
     id: '3',
-    name: 'Excalidraw',
-    url: 'https://excalidraw.com',
-    description: '手绘风流程图与草图工具，适合快速梳理思路。',
-    tags: ['流程图', '脑图'],
-  },
-  {
-    id: '4',
-    name: 'Regex101',
-    url: 'https://regex101.com',
-    description: '正则表达式在线调试与解释工具，开发必备。',
-    tags: ['开发', '调试'],
+    name: '梦乡',
+    url: 'http://yume.ly/',
+    description: '这个网站可以看到别人分享的梦境。',
+    tags: ['梦境', '猎奇'],
   },
   {
     id: '5',
@@ -42,16 +35,30 @@ const TOOLS: Tool[] = [
     description: '企业级团队文档与知识库，适合规范化沉淀流程、产品/研发文档与权限管理。',
     tags: ['四象限图', '数据分析'],
   },
+  {
+    id: '6',
+    name: '草料',
+    url: 'https://cli.im/text/other',
+    description: '草料二维码生成器，可以生成二维码。',
+    tags: ['二维码', '生成'],
+  },
+  {
+    id: '7',
+    name: 'Canva',
+    url: 'https://www.canva.com',
+    description: 'Canva是一个在线设计工具，可以用来设计海报、名片、社交媒体图片等。',
+    tags: ['设计', '海报', '社交媒体'],
+  },
 ];
 
 // Mock data for AI apps
 const AI_APPS: AIApp[] = [
   {
     id: '1',
-    name: 'Perplexity',
-    url: 'https://www.perplexity.ai',
-    description: '带引用的 AI 搜索与问答工具，适合资料查询与快速研究。',
-    scenarios: ['资料检索', '研究', '写作'],
+    name: 'Sora',
+    url: 'https://sora.chatgpt.com/explore',
+    description: 'AI生成视频的工具',
+    scenarios: ['AI生成视频','设计'],
   },
   {
     id: '2',
@@ -69,9 +76,16 @@ const AI_APPS: AIApp[] = [
   },
   {
     id: '4',
-    name: 'Zapier AI',
-    url: 'https://zapier.com',
-    description: '自动化工作流工具，结合 AI 实现多应用联动。',
+    name: 'Github',
+    url: 'https://github.com/',
+    description: '代码托管平台，适合团队协作与代码管理。',
+    scenarios: ['代码托管', '团队协作', '代码管理'],
+  },
+  {
+    id: '5',
+    name: 'manus',
+    url: 'https://manus.im/app',
+    description: 'manus是一个自动化处理的工具，可以帮你自动完成任务。',
     scenarios: ['自动化', '效率', '工作流'],
   },
 ];

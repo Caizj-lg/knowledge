@@ -60,9 +60,6 @@ export function AIAppCard({ app }: AIAppCardProps) {
         >
           打开应用
         </a>
-        <button className="px-4 py-2 bg-white text-gray-700 text-sm rounded-lg hover:bg-gray-50 border border-gray-300 transition-colors">
-          查看详情
-        </button>
       </div>
     </div>
   );
