@@ -49,6 +49,13 @@ const TOOLS: Tool[] = [
     description: 'Canva是一个在线设计工具，可以用来设计海报、名片、社交媒体图片等。',
     tags: ['设计', '海报', '社交媒体'],
   },
+  {
+    id: '8',
+    name: 'lddgo.net',
+    url: 'https://www.lddgo.net/index',
+    description: '在线绘图工具，可以用来快捷绘制可视化图表。',
+    tags: ['绘图', '图表', '可视化'],
+  }
 ];
 
 // Mock data for AI apps
@@ -115,8 +122,11 @@ const fuzzyMatch = (query: string, target: string) => {
   return false;
 };
 
+// 登录功能开关：设置为 false 时暂时禁用登录检查，但保留所有登录相关代码
+const ENABLE_LOGIN = false;
+
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!ENABLE_LOGIN); // 如果禁用登录，默认设置为已登录
   const [username, setUsername] = useState('');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -124,9 +134,14 @@ export default function App() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const savedUsername = localStorage.getItem('username');
-    if (savedUsername) {
-      setUsername(savedUsername);
+    if (ENABLE_LOGIN) {
+      const savedUsername = localStorage.getItem('username');
+      if (savedUsername) {
+        setUsername(savedUsername);
+        setIsLoggedIn(true);
+      }
+    } else {
+      // 如果禁用登录，自动设置为已登录状态
       setIsLoggedIn(true);
     }
   }, []);
@@ -151,8 +166,8 @@ export default function App() {
     [searchTerm],
   );
 
-  // Show login page if not logged in
-  if (!isLoggedIn) {
+  // Show login page if not logged in (仅在启用登录时检查)
+  if (ENABLE_LOGIN && !isLoggedIn) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
