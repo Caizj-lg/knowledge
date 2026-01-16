@@ -14,11 +14,11 @@ jobs:
         env:
           SUBMISSION_JSON: ${{ toJson(github.event.client_payload) }}
         run: |
-          payload=$(python - <<'PY'
+          payload=$(python3 - <<'PY'
 import json
 import os
 
-submission = json.loads(os.environ["SUBMISSION_JSON"])
+submission = json.loads(os.environ.get("SUBMISSION_JSON", "{}"))
 
 def join_list(items):
     return "、".join(items) if items else "无"
@@ -35,11 +35,7 @@ text = "\n".join([
     f"提交时间: {submission.get('submittedAt', '')}",
 ])
 
-payload = {
-    "msg_type": "text",
-    "content": {"text": text},
-}
-
+payload = {"msg_type": "text", "content": {"text": text}}
 print(json.dumps(payload, ensure_ascii=False))
 PY
           )
