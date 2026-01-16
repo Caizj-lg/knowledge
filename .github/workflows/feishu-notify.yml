@@ -8,17 +8,20 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Build Feishu payload
-        id: build
-        shell: bash
+      - name: Send to Feishu
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          PAYLOAD: ${{ toJson(github.event.client_payload) }}
         run: |
           set -euo pipefail
-          python3 - <<'PY' > payload.json
-import json
-import os
+          if [ -z "${FEISHU_WEBHOOK_URL:-}" ]; then
+            echo "FEISHU_WEBHOOK_URL is not set."
+            exit 1
+          fi
+          json=$(python3 - <<'PY'
+import json, os
 
-event = json.loads(os.environ.get("GITHUB_EVENT_PATH") and open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8").read() or "{}")
-submission = (event.get("client_payload") or {})
+submission = json.loads(os.environ.get("PAYLOAD", "{}"))
 
 def join_list(items):
     return "、".join(items) if items else "无"
@@ -35,22 +38,7 @@ text = "\n".join([
     f"提交时间: {submission.get('submittedAt', '')}",
 ])
 
-payload = {"msg_type": "text", "content": {"text": text}}
-print(json.dumps(payload, ensure_ascii=False))
+print(json.dumps({"msg_type":"text","content":{"text": text}}, ensure_ascii=False))
 PY
-          echo "payload_path=payload.json" >> "$GITHUB_OUTPUT"
-
-      - name: Send to Feishu
-        env:
-          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${FEISHU_WEBHOOK_URL:-}" ]; then
-            echo "FEISHU_WEBHOOK_URL is not set."
-            exit 1
-          fi
-          curl -sS -X POST \
-            -H "Content-Type: application/json" \
-            --data @payload.json \
-            "$FEISHU_WEBHOOK_URL"
+          )
+          curl -sS -X POST -H "Content-Type: application/json" -d "$json" "$FEISHU_WEBHOOK_URL"
