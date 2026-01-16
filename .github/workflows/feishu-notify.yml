@@ -1,0 +1,61 @@
+name: Notify Feishu on Tool Submission
+
+on:
+  repository_dispatch:
+    types:
+      - tool_submission
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Format message
+        id: format
+        env:
+          SUBMISSION_JSON: ${{ toJson(github.event.client_payload) }}
+        run: |
+          payload=$(python - <<'PY'
+import json
+import os
+
+submission = json.loads(os.environ["SUBMISSION_JSON"])
+
+def join_list(items):
+    return "、".join(items) if items else "无"
+
+text = "\n".join([
+    "新的工具提交",
+    f"分类: {submission.get('category', '')}",
+    f"工具名称: {submission.get('toolName', '')}",
+    f"网站链接: {submission.get('website', '')}",
+    f"说明: {submission.get('description', '')}",
+    f"标签: {join_list(submission.get('tags', []))}",
+    f"适用场景: {join_list(submission.get('scenarios', []))}",
+    f"提交者: {submission.get('submitter', '')}",
+    f"提交时间: {submission.get('submittedAt', '')}",
+])
+
+payload = {
+    "msg_type": "text",
+    "content": {"text": text},
+}
+
+print(json.dumps(payload, ensure_ascii=False))
+PY
+          )
+          echo "payload<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$payload" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Send to Feishu
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        run: |
+          if [ -z "$FEISHU_WEBHOOK_URL" ]; then
+            echo "FEISHU_WEBHOOK_URL is not set."
+            exit 1
+          fi
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "${{ steps.format.outputs.payload }}" \
+            "$FEISHU_WEBHOOK_URL"

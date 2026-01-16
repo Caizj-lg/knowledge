@@ -41,7 +41,7 @@ export function SubmitToolModal({ isOpen, onClose, username }: SubmitToolModalPr
     setScenarios(scenarios.filter((scenario) => scenario !== scenarioToRemove));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const submission = {
@@ -60,8 +60,41 @@ export function SubmitToolModal({ isOpen, onClose, username }: SubmitToolModalPr
     const existingSubmissions = JSON.parse(localStorage.getItem('submissions') || '[]');
     localStorage.setItem('submissions', JSON.stringify([...existingSubmissions, submission]));
 
+    let notificationFailed = false;
+    const githubOwner = import.meta.env.VITE_GITHUB_OWNER;
+    const githubRepo = import.meta.env.VITE_GITHUB_REPO;
+    const githubToken = import.meta.env.VITE_GITHUB_DISPATCH_TOKEN;
+    if (githubOwner && githubRepo && githubToken) {
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${githubOwner}/${githubRepo}/dispatches`,
+          {
+            method: 'POST',
+            headers: {
+              Accept: 'application/vnd.github+json',
+              Authorization: `Bearer ${githubToken}`,
+              'X-GitHub-Api-Version': '2022-11-28',
+            },
+            body: JSON.stringify({
+              event_type: 'tool_submission',
+              client_payload: submission,
+            }),
+          },
+        );
+        if (!response.ok) {
+          notificationFailed = true;
+        }
+      } catch (error) {
+        notificationFailed = true;
+      }
+    }
+
     // Show success message
-    alert('提交成功！感谢您的贡献，我们会尽快审核。');
+    if (notificationFailed) {
+      alert('提交成功！但消息通知失败，请稍后再试或联系管理员。');
+    } else {
+      alert('提交成功！感谢您的贡献，我们会尽快审核。');
+    }
 
     // Reset form
     setCategory('tool');
@@ -194,7 +227,7 @@ export function SubmitToolModal({ isOpen, onClose, username }: SubmitToolModalPr
           {category === 'tool' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                标签 <span className="text-red-500">*</span>
+                标签 <span className="text-gray-400">（可选）</span>
               </label>
               <div className="flex gap-2 mb-3">
                 <input
@@ -235,7 +268,7 @@ export function SubmitToolModal({ isOpen, onClose, username }: SubmitToolModalPr
                 </div>
               )}
               {tags.length === 0 && (
-                <p className="text-sm text-gray-500">请至少添加一个标签</p>
+                <p className="text-sm text-gray-500">可选填写，帮助更好分类</p>
               )}
             </div>
           )}
@@ -304,7 +337,6 @@ export function SubmitToolModal({ isOpen, onClose, username }: SubmitToolModalPr
                 !toolName.trim() ||
                 !website.trim() ||
                 !description.trim() ||
-                (category === 'tool' && tags.length === 0) ||
                 (category === 'ai-app' && scenarios.length === 0)
               }
               className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
