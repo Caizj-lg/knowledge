@@ -2,23 +2,23 @@ name: Notify Feishu on Tool Submission
 
 on:
   repository_dispatch:
-    types:
-      - tool_submission
+    types: [tool_submission]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Format message
-        id: format
-        env:
-          SUBMISSION_JSON: ${{ toJson(github.event.client_payload) }}
+      - name: Build Feishu payload
+        id: build
+        shell: bash
         run: |
-          payload=$(python3 - <<'PY'
+          set -euo pipefail
+          python3 - <<'PY' > payload.json
 import json
 import os
 
-submission = json.loads(os.environ.get("SUBMISSION_JSON", "{}"))
+event = json.loads(os.environ.get("GITHUB_EVENT_PATH") and open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8").read() or "{}")
+submission = (event.get("client_payload") or {})
 
 def join_list(items):
     return "、".join(items) if items else "无"
@@ -38,20 +38,19 @@ text = "\n".join([
 payload = {"msg_type": "text", "content": {"text": text}}
 print(json.dumps(payload, ensure_ascii=False))
 PY
-          )
-          echo "payload<<EOF" >> "$GITHUB_OUTPUT"
-          echo "$payload" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "payload_path=payload.json" >> "$GITHUB_OUTPUT"
 
       - name: Send to Feishu
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        shell: bash
         run: |
-          if [ -z "$FEISHU_WEBHOOK_URL" ]; then
+          set -euo pipefail
+          if [ -z "${FEISHU_WEBHOOK_URL:-}" ]; then
             echo "FEISHU_WEBHOOK_URL is not set."
             exit 1
           fi
-          curl -X POST \
+          curl -sS -X POST \
             -H "Content-Type: application/json" \
-            -d "${{ steps.format.outputs.payload }}" \
+            --data @payload.json \
             "$FEISHU_WEBHOOK_URL"
