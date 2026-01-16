@@ -8,16 +8,46 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Send to Feishu (smoke test)
+      - name: Send to Feishu
         env:
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
         run: |
-          set -e
-          if [ -z "$FEISHU_WEBHOOK_URL" ]; then
+          set -euo pipefail
+          if [ -z "${FEISHU_WEBHOOK_URL:-}" ]; then
             echo "FEISHU_WEBHOOK_URL is not set"
             exit 1
           fi
+
+          # Read repository_dispatch payload from GitHub event file (stable)
+          json=$(python3 - <<'PY'
+import json, os
+
+with open(os.environ["GITHUB_EVENT_PATH"], "r", encoding="utf-8") as f:
+    event = json.load(f)
+
+submission = event.get("client_payload") or {}
+
+def join_list(items):
+    return "、".join(items) if items else "无"
+
+text = "\n".join([
+    "新的工具提交",
+    f"分类: {submission.get('category', '')}",
+    f"工具名称: {submission.get('toolName', '')}",
+    f"网站链接: {submission.get('website', '')}",
+    f"说明: {submission.get('description', '')}",
+    f"标签: {join_list(submission.get('tags', []))}",
+    f"适用场景: {join_list(submission.get('scenarios', []))}",
+    f"提交者: {submission.get('submitter', '')}",
+    f"提交时间: {submission.get('submittedAt', '')}",
+])
+
+payload = {"msg_type": "text", "content": {"text": text}}
+print(json.dumps(payload, ensure_ascii=False))
+PY
+          )
+
           curl -sS -X POST \
             -H "Content-Type: application/json" \
-            -d '{"msg_type":"text","content":{"text":"飞书通知链路已跑通（repository_dispatch）"}}' \
+            -d "$json" \
             "$FEISHU_WEBHOOK_URL"
